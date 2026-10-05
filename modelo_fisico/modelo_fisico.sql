@@ -1,139 +1,219 @@
 /* modelo_logico: */
+CREATE DATABASE ClinicaVeterinaria;
+USE ClinicaVeterinaria;
+
+DROP DATABASE ClinicaVeterinaria;
+
+CREATE TABLE Funcionarios (
+    ID_Funcionario INT IDENTITY(1,1) PRIMARY KEY,
+    Login VARCHAR(30) NOT NULL UNIQUE,
+    SenhaHash NVARCHAR(100) NOT NULL,
+    Nome NVARCHAR(50) NOT NULL,
+    NivelAcesso CHAR(1) NOT NULL,
+    Telefone VARCHAR(11) NOT NULL,
+    CRMV VARCHAR(10) NOT NULL UNIQUE,
+    Funcionarios_TIPO CHAR(1) NOT NULL
+);
 
 CREATE TABLE Clientes (
-    ID INT PRIMARY KEY,
-    Nome NVARCHAR,
-    Telefone NUMERIC,
-    Endereco NVARCHAR,
-    CPF VARCHAR,
-    Nivel INT,
-    Senha VARCHAR,
-    Usuario NVARCHAR
+    ID_Cliente INT IDENTITY(1,1) PRIMARY KEY,
+    Nome NVARCHAR(50) NOT NULL,
+    Telefone VARCHAR(11) NOT NULL,
+    CPF VARCHAR(11) NOT NULL UNIQUE,
+    Endereco NVARCHAR(50) NOT NULL
 );
 
 CREATE TABLE Animais (
-    ID INT PRIMARY KEY,
-    Nome NVARCHAR,
-    Raca NVARCHAR,
-    Sexo CHAR,
-    Enfermidade NVARCHAR,
-    Descricao NVARCHAR,
-    Especie NVARCHAR,
-    fk_Clientes_ID INT
-);
+    ID_Animal INT IDENTITY(1,1) PRIMARY KEY,
+    Nome NVARCHAR(50) NOT NULL,
+    Raca NVARCHAR(50) NOT NULL,
+    Sexo CHAR(1) NOT NULL CHECK (Sexo IN ('M', 'F')),
+    Descricao NVARCHAR(60) NOT NULL,
+    Especie VARCHAR(30) NOT NULL,
+    Data_Nascimento DATE NOT NULL,
 
-CREATE TABLE Veterinarios (
-    ID INT PRIMARY KEY,
-    Nome NVARCHAR,
-    Telefone NUMERIC,
-    Nivel INT,
-    Usuario NVARCHAR,
-    Senha VARCHAR
+    fk_Clientes_ID_Cliente INT NOT NULL 
+    FOREIGN KEY REFERENCES dbo.Clientes (ID_Cliente) ON DELETE NO ACTION
 );
 
 CREATE TABLE Consultas (
-    Diagnostico NVARCHAR,
-    Preco MONEY,
-    ID INT PRIMARY KEY,
-    DataHora DATETIME,
-    fk_Animais_ID INT,
-    fk_Veterinarios_ID INT
+    ID_Consulta INT IDENTITY(1,1) PRIMARY KEY,
+
+    Diagnostico NVARCHAR(60) NOT NULL,
+    DataHora DATETIME NOT NULL,
+    Observacoes NVARCHAR(60) NOT NULL,
+
+    fk_Animais_ID_Animal INT NOT NULL,
+    fk_Funcionarios_ID_Funcionario INT NOT NULL,
+
+    CONSTRAINT FK_Consultas_Animal
+        FOREIGN KEY (fk_Animais_ID_Animal)
+        REFERENCES dbo.Animais(ID_Animal)
+        ON DELETE NO ACTION,
+
+    CONSTRAINT FK_Consultas_Funcionario
+        FOREIGN KEY (fk_Funcionarios_ID_Funcionario)
+        REFERENCES dbo.Funcionarios(ID_Funcionario)
+        ON DELETE NO ACTION
 );
 
 CREATE TABLE Servicos (
-    ID INT PRIMARY KEY,
-    Tipo INT
+    ID_Servico INT IDENTITY(1,1) PRIMARY KEY,
+    Tipo CHAR(1) NOT NULL,
+    Descricao NVARCHAR(60) NOT NULL,
+    Preco MONEY NOT NULL
 );
 
 CREATE TABLE Medicamentos (
-    ID INT PRIMARY KEY,
-    Nome NVARCHAR,
-    Descricao NVARCHAR,
-    Quantidade INT,
-    Preco MONEY,
-    fk_Estoque_Financeiro_ID INT
+    ID_Medicamento INT IDENTITY(1,1) PRIMARY KEY,
+    Nome NVARCHAR(50) NOT NULL,
+    Descricao NVARCHAR(60) NOT NULL,
+    Preco MONEY NOT NULL
 );
 
 CREATE TABLE Produtos (
-    ID INT PRIMARY KEY,
-    Nome NVARCHAR,
-    Descricao VARCHAR,
-    Quantidade INT,
-    Preco MONEY,
-    fk_Estoque_Financeiro_ID INT
+    ID_Produto INT IDENTITY(1,1) PRIMARY KEY,
+    Nome NVARCHAR(50) NOT NULL,
+    Preco MONEY NOT NULL,
+    Descricao NVARCHAR(60) NOT NULL
 );
 
 CREATE TABLE Fornecedores (
-    ID INT PRIMARY KEY,
-    Nome NVARCHAR,
-    CPF_CNPJ VARCHAR,
-    Telefone NUMERIC,
-    Descricao NVARCHAR
+    ID_Fornecedor INT IDENTITY(1,1) PRIMARY KEY,
+    Nome NVARCHAR(50) NOT NULL,
+    CPF_CNPJ VARCHAR(14) NOT NULL UNIQUE,
+    Telefone VARCHAR(11) NOT NULL,
+    Email NVARCHAR(50) NOT NULL,
+    Descricao NVARCHAR(60) NOT NULL
 );
 
-CREATE TABLE Estoque_Financeiro (
-    ID INT PRIMARY KEY,
-    Entrada MONEY,
-    Saida MONEY,
-    Saldo MONEY,
-    fk_Fornecedores_ID INT
+CREATE TABLE Movimentacao_Financeira (
+    ID_Movimentacao INT IDENTITY(1,1) PRIMARY KEY,
+
+    Tipo CHAR(1) NOT NULL CHECK (Tipo IN ('E', 'S')),
+    DataHora DATETIME NOT NULL,
+    Valor MONEY NOT NULL,
+    Descricao NVARCHAR(60) NOT NULL,
+
+    fk_Consultas_ID_Consulta INT NOT NULL,
+
+    CONSTRAINT FK_Movimentacao_Financeira_Consulta
+        FOREIGN KEY (fk_Consultas_ID_Consulta)
+        REFERENCES dbo.Consultas(ID_Consulta)
+        ON DELETE NO ACTION
 );
 
-CREATE TABLE Servico_Consulta_Realiza (
-    Preco_Cobrado MONEY,
-    Quantidade INT,
-    Observacoes NVARCHAR,
-    fk_Consultas_ID INT,
-    fk_Servicos_ID INT
+CREATE TABLE Prescricao (
+    ID_Prescricao INT IDENTITY(1,1) PRIMARY KEY,
+    Quantidade NUMERIC(2,0) NOT NULL,
+    Dosagem VARCHAR(10) NOT NULL,
+    Frequencia VARCHAR(20) NOT NULL,
+    Duracao VARCHAR(20) NOT NULL,
+    Observacoes NVARCHAR(60) NOT NULL,
+
+    fk_Medicamentos_ID_Medicamento INT NOT NULL,
+    fk_Consultas_ID_Consulta INT NOT NULL,
+
+    CONSTRAINT FK_Prescricao_Medicamento
+    FOREIGN KEY (fk_Medicamentos_ID_Medicamento) 
+    REFERENCES dbo.Medicamentos (ID_Medicamento),
+
+    CONSTRAINT FK_Prescricao_Consulta
+    FOREIGN KEY (fk_Consultas_ID_Consulta) 
+    REFERENCES dbo.Consultas (ID_Consulta)
 );
 
-CREATE TABLE Medicamento_Consulta_Utiliza (
-    fk_Medicamentos_ID INT,
-    fk_Consultas_ID INT
+CREATE TABLE Consulta_Servico (
+    fk_Servicos_ID_Servico INT NOT NULL,
+    fk_Consultas_ID_Consulta INT NOT NULL,
+
+    CONSTRAINT PK_Consulta_Servico
+        PRIMARY KEY (
+            fk_Servicos_ID_Servico,
+            fk_Consultas_ID_Consulta
+        ),
+
+    Quantidade NUMERIC(2,0) NOT NULL,
+    Preco MONEY NOT NULL,
+
+    CONSTRAINT FK_Consulta_Servico_Servico
+        FOREIGN KEY (fk_Servicos_ID_Servico)
+        REFERENCES dbo.Servicos(ID_Servico)
+        ON DELETE NO ACTION,
+
+    CONSTRAINT FK_Consulta_Servico_Consulta
+        FOREIGN KEY (fk_Consultas_ID_Consulta)
+        REFERENCES dbo.Consultas(ID_Consulta)
+        ON DELETE NO ACTION
 );
- 
-ALTER TABLE Animais ADD CONSTRAINT FK_Animais_2
-    FOREIGN KEY (fk_Clientes_ID)
-    REFERENCES Clientes (ID)
-    ON DELETE RESTRICT;
- 
-ALTER TABLE Consultas ADD CONSTRAINT FK_Consultas_2
-    FOREIGN KEY (fk_Animais_ID)
-    REFERENCES Animais (ID)
-    ON DELETE RESTRICT;
- 
-ALTER TABLE Consultas ADD CONSTRAINT FK_Consultas_3
-    FOREIGN KEY (fk_Veterinarios_ID)
-    REFERENCES Veterinarios (ID)
-    ON DELETE RESTRICT;
- 
-ALTER TABLE Medicamentos ADD CONSTRAINT FK_Medicamentos_2
-    FOREIGN KEY (fk_Estoque_Financeiro_ID)
-    REFERENCES Estoque_Financeiro (ID)
-    ON DELETE RESTRICT;
- 
-ALTER TABLE Produtos ADD CONSTRAINT FK_Produtos_2
-    FOREIGN KEY (fk_Estoque_Financeiro_ID)
-    REFERENCES Estoque_Financeiro (ID)
-    ON DELETE RESTRICT;
- 
-ALTER TABLE Estoque_Financeiro ADD CONSTRAINT FK_Estoque_Financeiro_2
-    FOREIGN KEY (fk_Fornecedores_ID)
-    REFERENCES Fornecedores (ID)
-    ON DELETE RESTRICT;
- 
-ALTER TABLE Servico_Consulta_Realiza ADD CONSTRAINT FK_Servico_Consulta_Realiza_1
-    FOREIGN KEY (fk_Consultas_ID)
-    REFERENCES Consultas (ID);
- 
-ALTER TABLE Servico_Consulta_Realiza ADD CONSTRAINT FK_Servico_Consulta_Realiza_2
-    FOREIGN KEY (fk_Servicos_ID)
-    REFERENCES Servicos (ID);
- 
-ALTER TABLE Medicamento_Consulta_Utiliza ADD CONSTRAINT FK_Medicamento_Consulta_Utiliza_1
-    FOREIGN KEY (fk_Medicamentos_ID)
-    REFERENCES Medicamentos (ID);
- 
-ALTER TABLE Medicamento_Consulta_Utiliza ADD CONSTRAINT FK_Medicamento_Consulta_Utiliza_2
-    FOREIGN KEY (fk_Consultas_ID)
-    REFERENCES Consultas (ID);
+
+CREATE TABLE Fornecedor_Produto (
+    fk_Produtos_ID_Produto INT NOT NULL,
+    fk_Fornecedores_ID_Fornecedor INT NOT NULL,
+
+    CONSTRAINT PK_Fornecedor_Produto
+    PRIMARY KEY (fk_Produtos_ID_Produto, fk_Fornecedores_ID_Fornecedor),
+    PrecoCompra MONEY NOT NULL,
+
+     CONSTRAINT FK_Fornecedor_Produto_Produto
+     FOREIGN KEY (fk_Produtos_ID_Produto) 
+     REFERENCES dbo.Produtos (ID_Produto),
+
+     CONSTRAINT FK_Fornecedor_Produto_Fornecedor
+     FOREIGN KEY (fk_Fornecedores_ID_Fornecedor) 
+     REFERENCES dbo.Fornecedores (ID_Fornecedor)
+);
+
+CREATE TABLE Fornecedor_Medicamento (
+    fk_Medicamentos_ID_Medicamento INT NOT NULL,
+    fk_Fornecedores_ID_Fornecedor INT NOT NULL,
+
+    CONSTRAINT PK_Fornecedor_Medicamento
+    PRIMARY KEY (fk_Medicamentos_ID_Medicamento, fk_Fornecedores_ID_Fornecedor),
+    PrecoCompra MONEY NOT NULL,
+
+    CONSTRAINT FK_Fornecedor_Medicamento_Produto
+     FOREIGN KEY (fk_Medicamentos_ID_Medicamento) 
+     REFERENCES dbo.Medicamentos (ID_Medicamento),
+
+     CONSTRAINT FK_Fornecedor_Medicamento_Fornecedor
+     FOREIGN KEY (fk_Fornecedores_ID_Fornecedor) 
+     REFERENCES dbo.Fornecedores (ID_Fornecedor)
+);
+
+CREATE TABLE Estoque_Produto (
+    fk_Produtos_ID_Produto INT PRIMARY KEY
+    FOREIGN KEY REFERENCES dbo.Produtos(ID_Produto)
+    ON DELETE NO ACTION,
+
+    Quantidade NUMERIC(4,0) NOT NULL,
+    EstoqueMinimo NUMERIC(3,0) NOT NULL
+);
+
+CREATE TABLE Estoque_Medicamento (
+    fk_Medicamentos_ID_Medicamento INT PRIMARY KEY
+    FOREIGN KEY REFERENCES dbo.Medicamentos(ID_Medicamento)
+    ON DELETE NO ACTION,
+
+    Quantidade NUMERIC(4,0) NOT NULL,
+    EstoqueMinimo NUMERIC(3,0) NOT NULL
+);
+
+CREATE TABLE Consulta_Produto (
+    fk_Consultas_ID_Consulta INT NOT NULL,
+    fk_Produtos_ID_Produto INT NOT NULL,
+
+    CONSTRAINT PK_Consulta_Produto
+    PRIMARY KEY (fk_Consultas_ID_Consulta, fk_Produtos_ID_Produto),
+
+    Quantidade NUMERIC(2,0) NOT NULL,
+    Preco MONEY NOT NULL,
+
+    CONSTRAINT FK_Consulta_Produto_Consulta
+     FOREIGN KEY (fk_Consultas_ID_Consulta) 
+     REFERENCES dbo.Consultas (ID_Consulta),
+
+     CONSTRAINT FK_Consulta_Produto_Produto
+     FOREIGN KEY (fk_Produtos_ID_Produto) 
+     REFERENCES dbo.Produtos (ID_Produto)
+);
