@@ -9,6 +9,7 @@ BEGIN
 	SELECT ID_Funcionario, Nome, Telefone, NivelAcesso, Funcionarios_TIPO, CRMV FROM dbo.Funcionarios WHERE Login = @Usuario AND 
 	SenhaHash = @Senha
 END;
+GO
 
 CREATE OR ALTER PROCEDURE sp_CadastrarCliente
     @Nome NVARCHAR(50),
@@ -142,3 +143,40 @@ BEGIN
 	INNER JOIN Funcionarios AS f
 	ON c.fk_Funcionarios_ID_Funcionario = f.ID_Funcionario;
 	GO
+
+CREATE OR ALTER  VIEW dbo.vw_Estoque
+AS
+
+SELECT
+'PRODUTO' AS Tipo_Item,
+p.ID_Produto AS ID_Item,
+p.nome AS Nome_Item,
+ep.Quantidade,
+ep.EstoqueMinimo,
+CASE
+WHEN ep.Quantidade <= ep.EstoqueMinimo
+THEN 'BAIXO'
+ELSE 'NORMAL'
+END AS Situacao
+FROM Estoque_Produto AS ep
+INNER JOIN Produtos AS p
+ON ep.fk_Produtos_ID_Produto = p.ID_Produto
+
+UNION ALL
+
+SELECT
+'MEDICAMENTO' AS Tipo_Item,
+m.ID_Medicamento AS ID_Item,
+m.Nome as Nome_Item,
+em.Quantidade,
+em.EstoqueMinimo,
+CASE
+WHEN em.Quantidade <= em.EstoqueMinimo
+THEN 'BAIXO'
+ELSE 'NORMAL'
+END AS Situacao
+FROM Estoque_Medicamento as em
+INNER JOIN Medicamentos AS m
+ON em.fk_Medicamentos_ID_Medicamento = m.ID_Medicamento;
+GO
+
