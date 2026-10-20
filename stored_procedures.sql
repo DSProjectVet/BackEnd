@@ -1,3 +1,78 @@
+
+USE ClinicaVeterinaria;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.sp_CadastrarFuncionario
+    @Login VARCHAR(30),
+    @SenhaHash NVARCHAR(100),
+    @NivelAcesso CHAR(1),
+    @Telefone VARCHAR(11),
+    @CRMV VARCHAR(10),
+    @Funcionarios_TIPO CHAR(1)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- 1. Validar campos obrigatórios
+    IF NULLIF(LTRIM(RTRIM(@Login)), '') IS NULL
+        SELECT 'O login e obrigatorio.';
+
+    IF NULLIF(LTRIM(RTRIM(@SenhaHash)), '') IS NULL
+        SELECT 'O hash da senha e obrigatorio.';
+
+    IF NULLIF(LTRIM(RTRIM(@NivelAcesso)), '') IS NULL
+        SELECT 'O nivel de acesso e obrigatorio.';
+
+    IF NULLIF(LTRIM(RTRIM(@Telefone)), '') IS NULL
+        SELECT 'O telefone e obrigatorio.';
+
+    IF NULLIF(LTRIM(RTRIM(@CRMV)), '') IS NULL
+        SELECT 'O CRMV e obrigatorio.';
+
+    IF NULLIF(LTRIM(RTRIM(@Funcionarios_TIPO)), '') IS NULL
+        SELECT 'O tipo de funcionario e obrigatorio.';
+
+    -- 2. Verificar se o login ja existe
+    IF EXISTS (
+        SELECT 1
+        FROM dbo.Funcionarios
+        WHERE Login = @Login
+    )
+        SELECT 'Este login ja esta cadastrado.';
+
+    -- 3. Verificar se o CRMV ja existe
+    IF EXISTS (
+        SELECT 1
+        FROM dbo.Funcionarios
+        WHERE CRMV = @CRMV
+    )
+        SELECT 'Este CRMV ja esta cadastrado.';
+
+    -- 4. Cadastrar funcionario
+    INSERT INTO dbo.Funcionarios (
+        Login,
+        SenhaHash,
+        NivelAcesso,
+        Telefone,
+        CRMV,
+        Funcionarios_TIPO
+    )
+    VALUES (
+        @Login,
+        @SenhaHash,
+        @NivelAcesso,
+        @Telefone,
+        @CRMV,
+        @Funcionarios_TIPO
+    );
+
+    -- 5. Retornar o ID gerado
+    SELECT
+        'Funcionário cadastrado com sucesso!';
+END;
+GO
+
+
 CREATE OR ALTER PROCEDURE SP_LoginUser
 (
 	@Usuario NVARCHAR(50),
@@ -180,3 +255,65 @@ INNER JOIN Medicamentos AS m
 ON em.fk_Medicamentos_ID_Medicamento = m.ID_Medicamento;
 GO
 
+CREATE OR ALTER TRIGGER dbo.trg_Consulta_Produto_Estoque
+ON dbo.Consulta_Produto
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Ajustes TABLE (
+        ID_Produto INT PRIMARY KEY,
+        Delta INT
+    );
+
+    INSERT INTO @Ajustes (ID_Produto, Delta)
+    SELECT
+        ID_Produto,
+        SUM(Delta)
+    FROM
+    (
+        SELECT
+            fk_Produtos_ID_Produto AS ID_Produto,
+            -CAST(Quantidade AS INT) AS Delta
+        FROM inserted
+
+        UNION ALL
+
+        SELECT
+            fk_Produtos_ID_Produto AS ID_Produto,
+            CAST(Quantidade AS INT) AS Delta
+        FROM deleted
+    ) AS Movimentos
+    GROUP BY ID_Produto;
+
+    IF EXISTS (
+        SELECT 1
+        FROM @Ajustes AS a
+        LEFT JOIN Estoque_Produto AS ep
+            ON ep.fk_Produtos_ID_Produto = a.ID_Produto
+        WHERE ep.fk_Produtos_ID_Produto IS NULL
+          AND a.Delta < 0
+    )
+    BEGIN
+        SELECT 'O produto não possui registro de estoque.';
+    END;
+
+    UPDATE ep
+    SET ep.Quantidade = ep.Quantidade + a.Delta
+    FROM Estoque_Produto AS ep
+    INNER JOIN @Ajustes AS a
+        ON ep.fk_Produtos_ID_Produto = a.ID_Produto;
+
+    IF EXISTS (
+        SELECT 1
+        FROM Estoque_Produto AS ep
+        INNER JOIN @Ajustes AS a
+            ON ep.fk_Produtos_ID_Produto = a.ID_Produto
+        WHERE ep.Quantidade < 0
+    )
+    BEGIN
+        SELECT 'Quantidade insuficiente em estoque.';
+    END;
+END;
+GO
