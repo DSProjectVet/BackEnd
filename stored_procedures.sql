@@ -3,6 +3,7 @@ USE ClinicaVeterinaria;
 GO
 
 CREATE OR ALTER PROCEDURE dbo.sp_CadastrarFuncionario
+    @Nome NVARCHAR(50),
     @Login VARCHAR(30),
     @SenhaHash NVARCHAR(100),
     @NivelAcesso CHAR(1),
@@ -52,6 +53,7 @@ BEGIN
     INSERT INTO dbo.Funcionarios (
         Login,
         SenhaHash,
+        Nome,
         NivelAcesso,
         Telefone,
         CRMV,
@@ -60,6 +62,7 @@ BEGIN
     VALUES (
         @Login,
         @SenhaHash,
+        @Nome,
         @NivelAcesso,
         @Telefone,
         @CRMV,
