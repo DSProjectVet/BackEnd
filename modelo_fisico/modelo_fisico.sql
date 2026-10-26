@@ -6,7 +6,7 @@ DROP DATABASE ClinicaVeterinaria;
 
 CREATE TABLE Funcionarios (
     ID_Funcionario INT IDENTITY(1,1) PRIMARY KEY,
-    Login VARCHAR(30) NOT NULL UNIQUE,
+    Login NVARCHAR(50) NOT NULL UNIQUE,
     SenhaHash NVARCHAR(100) NOT NULL,
     Nome NVARCHAR(50) NOT NULL,
     NivelAcesso CHAR(1) NOT NULL,
@@ -15,6 +15,8 @@ CREATE TABLE Funcionarios (
     Funcionarios_TIPO CHAR(1) NOT NULL
 );
 
+DROP TABLE dbo.Funcionarios
+
 CREATE TABLE Clientes (
     ID_Cliente INT IDENTITY(1,1) PRIMARY KEY,
     Nome NVARCHAR(50) NOT NULL,
@@ -22,6 +24,8 @@ CREATE TABLE Clientes (
     CPF VARCHAR(11) NOT NULL UNIQUE,
     Endereco NVARCHAR(50) NOT NULL
 );
+
+DROP TABLE dbo.Clientes
 
 CREATE TABLE Animais (
     ID_Animal INT IDENTITY(1,1) PRIMARY KEY,
@@ -35,6 +39,8 @@ CREATE TABLE Animais (
     fk_Clientes_ID_Cliente INT NOT NULL 
     FOREIGN KEY REFERENCES dbo.Clientes (ID_Cliente) ON DELETE NO ACTION
 );
+
+DROP TABLE dbo.Animais
 
 CREATE TABLE Consultas (
     ID_Consulta INT IDENTITY(1,1) PRIMARY KEY,
@@ -57,12 +63,16 @@ CREATE TABLE Consultas (
         ON DELETE NO ACTION
 );
 
+DROP TABLE dbo.Consultas
+
 CREATE TABLE Servicos (
     ID_Servico INT IDENTITY(1,1) PRIMARY KEY,
     Tipo CHAR(1) NOT NULL,
     Descricao NVARCHAR(60) NOT NULL,
     Preco MONEY NOT NULL
 );
+
+DROP TABLE dbo.Servicos
 
 CREATE TABLE Medicamentos (
     ID_Medicamento INT IDENTITY(1,1) PRIMARY KEY,
@@ -71,12 +81,16 @@ CREATE TABLE Medicamentos (
     Preco MONEY NOT NULL
 );
 
+DROP TABLE dbo.Medicamentos
+
 CREATE TABLE Produtos (
     ID_Produto INT IDENTITY(1,1) PRIMARY KEY,
     Nome NVARCHAR(50) NOT NULL,
     Preco MONEY NOT NULL,
     Descricao NVARCHAR(60) NOT NULL
 );
+
+DROP TABLE dbo.Produtos
 
 CREATE TABLE Fornecedores (
     ID_Fornecedor INT IDENTITY(1,1) PRIMARY KEY,
@@ -86,6 +100,8 @@ CREATE TABLE Fornecedores (
     Email NVARCHAR(50) NOT NULL,
     Descricao NVARCHAR(60) NOT NULL
 );
+
+DROP TABLE dbo.Fornecedores
 
 CREATE TABLE Movimentacao_Financeira (
     ID_Movimentacao INT IDENTITY(1,1) PRIMARY KEY,
@@ -102,6 +118,8 @@ CREATE TABLE Movimentacao_Financeira (
         REFERENCES dbo.Consultas(ID_Consulta)
         ON DELETE NO ACTION
 );
+
+DROP TABLE dbo.Movimentacao_Financeira
 
 CREATE TABLE Prescricao (
     ID_Prescricao INT IDENTITY(1,1) PRIMARY KEY,
@@ -122,6 +140,8 @@ CREATE TABLE Prescricao (
     FOREIGN KEY (fk_Consultas_ID_Consulta) 
     REFERENCES dbo.Consultas (ID_Consulta)
 );
+
+DROP TABLE dbo.Prescricao
 
 CREATE TABLE Consulta_Servico (
     fk_Servicos_ID_Servico INT NOT NULL,
@@ -147,6 +167,8 @@ CREATE TABLE Consulta_Servico (
         ON DELETE NO ACTION
 );
 
+DROP TABLE dbo.Consulta_Servico
+
 CREATE TABLE Fornecedor_Produto (
     fk_Produtos_ID_Produto INT NOT NULL,
     fk_Fornecedores_ID_Fornecedor INT NOT NULL,
@@ -163,6 +185,8 @@ CREATE TABLE Fornecedor_Produto (
      FOREIGN KEY (fk_Fornecedores_ID_Fornecedor) 
      REFERENCES dbo.Fornecedores (ID_Fornecedor)
 );
+
+DROP TABLE dbo.Fornecedor_Produto
 
 CREATE TABLE Fornecedor_Medicamento (
     fk_Medicamentos_ID_Medicamento INT NOT NULL,
@@ -181,6 +205,8 @@ CREATE TABLE Fornecedor_Medicamento (
      REFERENCES dbo.Fornecedores (ID_Fornecedor)
 );
 
+DROP TABLE dbo.Fornecedor_Medicamento
+
 CREATE TABLE Estoque_Produto (
     fk_Produtos_ID_Produto INT PRIMARY KEY
     FOREIGN KEY REFERENCES dbo.Produtos(ID_Produto)
@@ -190,6 +216,8 @@ CREATE TABLE Estoque_Produto (
     EstoqueMinimo NUMERIC(3,0) NOT NULL
 );
 
+DROP TABLE dbo.Estoque_Produto
+
 CREATE TABLE Estoque_Medicamento (
     fk_Medicamentos_ID_Medicamento INT PRIMARY KEY
     FOREIGN KEY REFERENCES dbo.Medicamentos(ID_Medicamento)
@@ -198,6 +226,8 @@ CREATE TABLE Estoque_Medicamento (
     Quantidade NUMERIC(4,0) NOT NULL,
     EstoqueMinimo NUMERIC(3,0) NOT NULL
 );
+
+DROP TABLE dbo.Estoque_Medicamento
 
 CREATE TABLE Consulta_Produto (
     fk_Consultas_ID_Consulta INT NOT NULL,
@@ -217,3 +247,5 @@ CREATE TABLE Consulta_Produto (
      FOREIGN KEY (fk_Produtos_ID_Produto) 
      REFERENCES dbo.Produtos (ID_Produto)
 );
+
+DROP TABLE dbo.Consulta_Produto

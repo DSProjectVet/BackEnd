@@ -4,7 +4,7 @@ GO
 
 CREATE OR ALTER PROCEDURE dbo.sp_CadastrarFuncionario
     @Nome NVARCHAR(50),
-    @Login VARCHAR(30),
+    @Login NVARCHAR(50),
     @SenhaHash NVARCHAR(100),
     @NivelAcesso CHAR(1),
     @Telefone VARCHAR(11),
@@ -16,22 +16,22 @@ BEGIN
 
     -- 1. Validar campos obrigatórios
     IF NULLIF(LTRIM(RTRIM(@Login)), '') IS NULL
-        SELECT 'O login e obrigatorio.';
+        SELECT 'O login e obrigatorio.' AS ERROR;
 
     IF NULLIF(LTRIM(RTRIM(@SenhaHash)), '') IS NULL
-        SELECT 'O hash da senha e obrigatorio.';
+        SELECT 'O hash da senha e obrigatorio.' AS ERROR;
 
     IF NULLIF(LTRIM(RTRIM(@NivelAcesso)), '') IS NULL
-        SELECT 'O nivel de acesso e obrigatorio.';
+        SELECT 'O nivel de acesso e obrigatorio.' AS ERROR;
 
     IF NULLIF(LTRIM(RTRIM(@Telefone)), '') IS NULL
-        SELECT 'O telefone e obrigatorio.';
+        SELECT 'O telefone e obrigatorio.' AS ERROR;
 
     IF NULLIF(LTRIM(RTRIM(@CRMV)), '') IS NULL
-        SELECT 'O CRMV e obrigatorio.';
+        SELECT 'O CRMV e obrigatorio.' AS ERROR;
 
     IF NULLIF(LTRIM(RTRIM(@Funcionarios_TIPO)), '') IS NULL
-        SELECT 'O tipo de funcionario e obrigatorio.';
+        SELECT 'O tipo de funcionario e obrigatorio.' AS ERROR;
 
     -- 2. Verificar se o login ja existe
     IF EXISTS (
@@ -39,7 +39,7 @@ BEGIN
         FROM dbo.Funcionarios
         WHERE Login = @Login
     )
-        SELECT 'Este login ja esta cadastrado.';
+        SELECT 'Este login ja esta cadastrado.' AS ERROR;
 
     -- 3. Verificar se o CRMV ja existe
     IF EXISTS (
@@ -47,7 +47,7 @@ BEGIN
         FROM dbo.Funcionarios
         WHERE CRMV = @CRMV
     )
-        SELECT 'Este CRMV ja esta cadastrado.';
+        SELECT 'Este CRMV ja esta cadastrado.' AS ERROR;
 
     -- 4. Cadastrar funcionario
     INSERT INTO dbo.Funcionarios (
@@ -71,21 +71,21 @@ BEGIN
 
     -- 5. Retornar o ID gerado
     SELECT
-        'Funcionário cadastrado com sucesso!';
+        'Funcionário cadastrado com sucesso!' AS SUCCESS;
 END;
 GO
 
+select * from dbo.Funcionarios
 
-CREATE OR ALTER PROCEDURE SP_LoginUser
+CREATE OR ALTER PROCEDURE sp_LoginUser
 (
-	@Usuario NVARCHAR(50),
-	@Senha VARCHAR(255)
+	@Usuario NVARCHAR(50)
 )
 AS
 BEGIN
 	SET NOCOUNT ON;
-	SELECT ID_Funcionario, Nome, Telefone, NivelAcesso, Funcionarios_TIPO, CRMV FROM dbo.Funcionarios WHERE Login = @Usuario AND 
-	SenhaHash = @Senha
+	SELECT ID_Funcionario, Login, Nome, Telefone, NivelAcesso, 
+        Funcionarios_TIPO, CRMV, SenhaHash FROM dbo.Funcionarios WHERE Login = @Usuario
 END;
 GO
 
@@ -104,7 +104,7 @@ BEGIN
         WHERE CPF = @CPF
     )
     BEGIN
-        SELECT 'Já existe um cliente cadastrado com este CPF.';
+        SELECT 'Já existe um cliente cadastrado com este CPF.' AS ERROR;
         RETURN;
     END;
 
@@ -121,7 +121,7 @@ BEGIN
         @Endereco
     );
 
-    SELECT 'Cliente cadastrado com sucesso!';
+    SELECT 'Cliente cadastrado com sucesso!' AS SUCCESS;
 END;
 GO
 
@@ -151,7 +151,7 @@ BEGIN
 	@ID_Funcionario
 	);
 
-	SELECT 'Cadastro concluído com sucesso';
+	SELECT 'Cadastro concluído com sucesso' AS SUCCESS;
 	END;
 	GO
 	
@@ -188,7 +188,7 @@ BEGIN
 	@ID_Consulta
 	);
 
-	SELECT 'Registrado com sucesso';
+	SELECT 'Registrado com sucesso' AS SUCCESS;
 	END;
 	GO
 
@@ -222,40 +222,32 @@ BEGIN
 	ON c.fk_Funcionarios_ID_Funcionario = f.ID_Funcionario;
 	GO
 
-CREATE OR ALTER  VIEW dbo.vw_Estoque
+CREATE OR ALTER VIEW dbo.vw_Estoque
 AS
 
-SELECT
-'PRODUTO' AS Tipo_Item,
-p.ID_Produto AS ID_Item,
-p.nome AS Nome_Item,
-ep.Quantidade,
-ep.EstoqueMinimo,
+SELECT 'PRODUTO' AS Tipo_Item, p.ID_Produto AS ID_Item, p.nome AS Nome_Item,
+    ep.Quantidade, ep.EstoqueMinimo,
 CASE
-WHEN ep.Quantidade <= ep.EstoqueMinimo
-THEN 'BAIXO'
-ELSE 'NORMAL'
+    WHEN ep.Quantidade <= ep.EstoqueMinimo
+        THEN 'BAIXO'
+    ELSE 'NORMAL'
 END AS Situacao
 FROM Estoque_Produto AS ep
-INNER JOIN Produtos AS p
-ON ep.fk_Produtos_ID_Produto = p.ID_Produto
+    INNER JOIN Produtos AS p
+    ON ep.fk_Produtos_ID_Produto = p.ID_Produto
 
 UNION ALL
 
-SELECT
-'MEDICAMENTO' AS Tipo_Item,
-m.ID_Medicamento AS ID_Item,
-m.Nome as Nome_Item,
-em.Quantidade,
-em.EstoqueMinimo,
+SELECT 'MEDICAMENTO' AS Tipo_Item, m.ID_Medicamento AS ID_Item,
+    m.Nome as Nome_Item, em.Quantidade, em.EstoqueMinimo,
 CASE
-WHEN em.Quantidade <= em.EstoqueMinimo
-THEN 'BAIXO'
-ELSE 'NORMAL'
+    WHEN em.Quantidade <= em.EstoqueMinimo
+        THEN 'BAIXO'
+    ELSE 'NORMAL'
 END AS Situacao
 FROM Estoque_Medicamento as em
-INNER JOIN Medicamentos AS m
-ON em.fk_Medicamentos_ID_Medicamento = m.ID_Medicamento;
+    INNER JOIN Medicamentos AS m
+    ON em.fk_Medicamentos_ID_Medicamento = m.ID_Medicamento;
 GO
 
 CREATE OR ALTER TRIGGER dbo.trg_Consulta_Produto_Estoque
@@ -299,7 +291,7 @@ BEGIN
           AND a.Delta < 0
     )
     BEGIN
-        SELECT 'O produto não possui registro de estoque.';
+        SELECT 'O produto não possui registro de estoque.' AS ERROR;
     END;
 
     UPDATE ep
@@ -316,7 +308,7 @@ BEGIN
         WHERE ep.Quantidade < 0
     )
     BEGIN
-        SELECT 'Quantidade insuficiente em estoque.';
+        SELECT 'Quantidade insuficiente em estoque.' AS ERROR;
     END;
 END;
 GO
