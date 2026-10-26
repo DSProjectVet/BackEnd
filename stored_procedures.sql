@@ -2,6 +2,11 @@
 USE ClinicaVeterinaria;
 GO
 
+EXEC dbo.sp_CadastrarFuncionario 'teste', 'admin.murilo', '$2a$11$guA0foBTNm18lDXUN2SmZ.btzylqXrQ0PIqockFi/I5HYGlYzB0wG',
+'1', '159908712234', '125436', '1'
+
+EXEC dbo.sp_CadastrarCliente 'TESTE', '12356478952', '45698723215', 'RUA TESTE'
+
 CREATE OR ALTER PROCEDURE dbo.sp_CadastrarFuncionario
     @Nome NVARCHAR(50),
     @Login NVARCHAR(50),

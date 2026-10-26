@@ -27,6 +27,10 @@ CREATE TABLE Clientes (
 
 DROP TABLE dbo.Clientes
 
+INSERT INTO dbo.Animais (Nome, Raca, Sexo, Descricao, Especie, Data_Nascimento, fk_Clientes_ID_Cliente) 
+VALUES ('Alfredo', 'Pitbull', 'M', 'Marrom de olhos azuis', 'Cachorro', '12/12/2020', 1)
+
+
 CREATE TABLE Animais (
     ID_Animal INT IDENTITY(1,1) PRIMARY KEY,
     Nome NVARCHAR(50) NOT NULL,
