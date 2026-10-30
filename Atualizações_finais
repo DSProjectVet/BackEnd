@@ -387,3 +387,33 @@ BEGIN
     END CATCH;
 END;
 GO
+
+
+BEGIN TRY
+    BEGIN TRANSACTION;
+
+    -- Substitua pelo nome exato da restrição
+    -- UNIQUE que pertence à coluna CRMV.
+    ALTER TABLE dbo.Funcionarios
+    DROP CONSTRAINT [UQ__Funciona__F2379DCAE3C441B2];
+
+    -- Normaliza CRMVs vazios.
+    UPDATE dbo.Funcionarios
+    SET CRMV = NULL
+    WHERE CRMV IS NOT NULL
+      AND LTRIM(RTRIM(CRMV)) = '';
+
+    -- Exige CRMV único somente quando preenchido.
+    CREATE UNIQUE INDEX
+        UX_Funcionarios_CRMV_Preenchido
+    ON dbo.Funcionarios(CRMV)
+    WHERE CRMV IS NOT NULL;
+
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION;
+
+    THROW;
+END CATCH;
