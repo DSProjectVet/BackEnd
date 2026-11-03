@@ -11,7 +11,7 @@ CREATE TABLE Funcionarios (
     Nome NVARCHAR(50) NOT NULL,
     NivelAcesso CHAR(1) NOT NULL,
     Telefone VARCHAR(11) NOT NULL,
-    CRMV VARCHAR(10) NOT NULL UNIQUE,
+    CRMV VARCHAR(10) NULL,
     Funcionarios_TIPO CHAR(1) NOT NULL
 );
 
@@ -26,9 +26,6 @@ CREATE TABLE Clientes (
 );
 
 DROP TABLE dbo.Clientes
-
-INSERT INTO dbo.Animais (Nome, Raca, Sexo, Descricao, Especie, Data_Nascimento, fk_Clientes_ID_Cliente) 
-VALUES ('Alfredo', 'Pitbull', 'M', 'Marrom de olhos azuis', 'Cachorro', '12/12/2020', 1)
 
 
 CREATE TABLE Animais (

@@ -2,11 +2,6 @@
 USE ClinicaVeterinaria;
 GO
 
-EXEC dbo.sp_CadastrarFuncionario 'teste', 'admin.murilo', '$2a$11$guA0foBTNm18lDXUN2SmZ.btzylqXrQ0PIqockFi/I5HYGlYzB0wG',
-'1', '159908712234', '125436', '1'
-
-EXEC dbo.sp_CadastrarCliente 'TESTE', '12356478952', '45698723215', 'RUA TESTE'
-
 CREATE OR ALTER PROCEDURE dbo.sp_CadastrarFuncionario
     @Nome NVARCHAR(50),
     @Login NVARCHAR(50),
@@ -44,7 +39,10 @@ BEGIN
         FROM dbo.Funcionarios
         WHERE Login = @Login
     )
+    BEGIN
         SELECT 'Este login ja esta cadastrado.' AS ERROR;
+        RETURN;
+    END
 
     -- 3. Verificar se o CRMV ja existe
     IF EXISTS (
@@ -79,8 +77,6 @@ BEGIN
         'Funcionário cadastrado com sucesso!' AS SUCCESS;
 END;
 GO
-
-select * from dbo.Funcionarios
 
 CREATE OR ALTER PROCEDURE sp_LoginUser
 (
